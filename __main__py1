@@ -1,4 +1,3 @@
-import html
 import importlib
 import time
 import re
@@ -75,55 +74,54 @@ def get_readable_time(seconds: int) -> str:
 
 
 PM_START_TEXT = """
-Hai nama saya Roso![ㅤ](https://telegra.ph/file/68cbef94c97ad8055ba2e.jpg)
-Saya adalah bot yang Strong dan berEnergi yang dapat membantu anda mengelola grup dengan lebih aman dan kuat!
-Tekan *Bantuan* untuk melihat daftar perintah dan bagaimana mereka bekerja! 
+NAMA SAYA ROSO..
+
+
+➪COMING SOON..
 """
 
 buttons = [
-    [   InlineKeyboardButton(text="➕ Tambahkan ke grup ➕", url="t.me/GrupManajerBot?startgroup=start"),
+    [
+        InlineKeyboardButton(
+            text="Tambahkan ke Grup", url="t.me/RosoManage_bot?startgroup=true"),
     ],
-    [   InlineKeyboardButton(text="🔊 Channel", url="https://t.me/arunasupportbot"),
-        InlineKeyboardButton(text="Informasi 💬",callback_data="aboutmanu_"),
+    [
+        InlineKeyboardButton(
+            text="About", callback_data="masha_"),
+        InlineKeyboardButton(
+            text="Plugins", callback_data="help_back"),
     ],
-    [    
-        InlineKeyboardButton(text="🔧 Bantuan 🔧",callback_data="aboutmanu_howto"
-        ),
+    [  
+        InlineKeyboardButton(text="Bantuan", callback_data="permis_"
+    ),
     ],
 ]
 
-HELP_STRINGS = f"""
-*PENGATURAN GRUP*
-
-_Pilih salah satu pengaturan yang ingin anda ubah._
-""".format(
-    dispatcher.bot.first_name,
-    "" if not ALLOW_EXCL else "\nAll commands can either be used with / or !.\n",
-)
 
 
-DONATE_STRING = """No need im rich"""
+HELP_STRINGS = """
+*Pengaturan Grup*
+"""
+
+
+DONATE_STRING = """No need.. I'm rich"""
 
 IMPORTED = {}
 MIGRATEABLE = []
 HELPABLE = {}
 STATS = []
 USER_INFO = []
-USER_BOOK = []
 DATA_IMPORT = []
 DATA_EXPORT = []
-
 CHAT_SETTINGS = {}
 USER_SETTINGS = {}
-
-GDPR = []
 
 for module_name in ALL_MODULES:
     imported_module = importlib.import_module("MashaRoBot.modules." + module_name)
     if not hasattr(imported_module, "__mod_name__"):
         imported_module.__mod_name__ = imported_module.__name__
 
-    if not imported_module.__mod_name__.lower() in IMPORTED:
+    if imported_module.__mod_name__.lower() not in IMPORTED:
         IMPORTED[imported_module.__mod_name__.lower()] = imported_module
     else:
         raise Exception("Can't have two modules with the same name! Please change one")
@@ -138,14 +136,8 @@ for module_name in ALL_MODULES:
     if hasattr(imported_module, "__stats__"):
         STATS.append(imported_module)
 
-    if hasattr(imported_module, "__gdpr__"):
-        GDPR.append(imported_module)
-
     if hasattr(imported_module, "__user_info__"):
         USER_INFO.append(imported_module)
-
-    if hasattr(imported_module, "__user_book__"):
-        USER_BOOK.append(imported_module)
 
     if hasattr(imported_module, "__import_data__"):
         DATA_IMPORT.append(imported_module)
@@ -165,19 +157,18 @@ def send_help(chat_id, text, keyboard=None):
     if not keyboard:
         keyboard = InlineKeyboardMarkup(paginate_modules(0, HELPABLE, "help"))
     dispatcher.bot.send_message(
-        chat_id=chat_id, text=text, parse_mode=ParseMode.MARKDOWN, reply_markup=keyboard
+        chat_id=chat_id,
+        text=text,
+        parse_mode=ParseMode.MARKDOWN,
+        disable_web_page_preview=True,
+        reply_markup=keyboard,
     )
 
 
 @run_async
-def test(update, context):
-    try:
-        print(update)
-    except:
-        pass
-    update.effective_message.reply_text(
-        "Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN
-    )
+def test(update: Update, context: CallbackContext):
+    # pprint(eval(str(update)))
+    # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
     update.effective_message.reply_text("This person edited a message")
     print(update.effective_message)
 
@@ -198,7 +189,7 @@ def start(update: Update, context: CallbackContext):
                     update.effective_chat.id,
                     HELPABLE[mod].__help__,
                     InlineKeyboardMarkup(
-                        [[InlineKeyboardButton(text="Back", callback_data="help_back")]]
+                        [[InlineKeyboardButton(text="⬅️ BACK", callback_data="help_back")]]
                     ),
                 )
 
@@ -223,7 +214,7 @@ def start(update: Update, context: CallbackContext):
             )
     else:
         update.effective_message.reply_text(
-            "Saya sedang online!\n<b>Online sejak:</b> <code>{}</code>".format(
+            "I'm awake already!\n<b>Haven't slept since:</b> <code>{}</code>".format(
                 uptime
             ),
             parse_mode=ParseMode.HTML,
@@ -295,11 +286,14 @@ def help_button(update, context):
     prev_match = re.match(r"help_prev\((.+?)\)", query.data)
     next_match = re.match(r"help_next\((.+?)\)", query.data)
     back_match = re.match(r"help_back", query.data)
+
+    print(query.message.chat.id)
+
     try:
         if mod_match:
             module = mod_match.group(1)
             text = (
-                "*｢  Help  for  {}  module 」*\n".format(
+                "「 *HELP FOR* *{}* 」:\n".format(
                     HELPABLE[module].__mod_name__
                 )
                 + HELPABLE[module].__help__
@@ -307,15 +301,16 @@ def help_button(update, context):
             query.message.edit_text(
                 text=text,
                 parse_mode=ParseMode.MARKDOWN,
+                disable_web_page_preview=True,
                 reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton(text="Back", callback_data="help_back")]]
+                    [[InlineKeyboardButton(text="「 GO BACK 」", callback_data="help_back")]]
                 ),
             )
 
         elif prev_match:
             curr_page = int(prev_match.group(1))
             query.message.edit_text(
-                HELP_STRINGS,
+                text=HELP_STRINGS,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(curr_page - 1, HELPABLE, "help")
@@ -325,7 +320,7 @@ def help_button(update, context):
         elif next_match:
             next_page = int(next_match.group(1))
             query.message.edit_text(
-                HELP_STRINGS,
+                text=HELP_STRINGS,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(next_page + 1, HELPABLE, "help")
@@ -344,76 +339,114 @@ def help_button(update, context):
         # ensure no spinny white circle
         context.bot.answer_callback_query(query.id)
         # query.message.delete()
-    except Exception as excp:
-        if excp.message == "Message is not modified":
-            pass
-        elif excp.message == "Query_id_invalid":
-            pass
-        elif excp.message == "Message can't be deleted":
-            pass
-        else:
-            query.message.edit_text(excp.message)
-            LOGGER.exception("Exception in help buttons. %s", str(query.data))
+
+    except BadRequest:
+        pass
 
 
 @run_async
-def DaisyX_about_callback(update, context):
+def Masha_about_callback(update: Update, context: CallbackContext):
     query = update.callback_query
-    if query.data == "aboutmanu_":
+    if query.data == "masha_":
         query.message.edit_text(
-            text=f"*Rosi* adalah Bot cloning yang dikembangkan dari beberapa repo manager yang ada, daring sejak 23 april 2020 dan terus diperbarui!"
-            f"\n\n*Versi Bot:* _2.0_"
-            f"\n\nTerima kasih kepada *SaitamaRobot*, *Masha* dan semua manajer peladen lainnya, semua admin bot, semua *pendukung*, dan semua pengguna yang membantu kami dalam mengelola, *donatur*, dan semua pengguna yang melaporkan kesalahan atau fitur baru kepada kami."
-            f"\n\nJuga terima kasih kepada *semua grup* yang menggunakan bot kami, kami terus belajar agar tidak copas doang!"
-            f"\n💡 [Terms & Conditions](https://telegra.ph/Terms-and-Conditions-06-23)",
+            text=""" ℹ️ I'm *SOULMATE*, a powerful group management bot built to help you manage your group easily.
+                 ❍ I can restrict users.
+                 ❍ I can greet users with customizable welcome messages and even set a group's rules.
+                 ❍ I have an advanced anti-flood system.
+                 ❍ I can warn users until they reach max warns, with each predefined actions such as ban, mute, kick, etc.
+                 ❍ I have a note keeping system, blacklists, and even predetermined replies on certain keywords.
+                 ❍ I check for admins' permissions before executing any command and more stuffs
+                 \n_LOVELY's licensed under the GNU General Public License v3.0_
+                 Here is the [Dev](https://t.me/tushar204).
+                 If you have any question about Soulmate, let us know at @SOULMAT3SUPPORTS.""",
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
                 [
-                    [
-                        InlineKeyboardButton(text="About", callback_data="aboutmanu_tac")
-                    ],
-                    [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_back")],
+                 [
+                    InlineKeyboardButton(text="Back", callback_data="masha_back")
+                 ]
                 ]
             ),
         )
-    elif query.data == "aboutmanu_back":
+    elif query.data == "masha_back":
         query.message.edit_text(
-            PM_START_TEXT,
-            reply_markup=InlineKeyboardMarkup(buttons),
-            parse_mode=ParseMode.MARKDOWN,
-            timeout=60,
+                PM_START_TEXT,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=60,
+                disable_web_page_preview=False,
         )
 
-    elif query.data == "aboutmanu_howto":
+
+@run_async
+def Source_about_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    if query.data == "source_":
         query.message.edit_text(
-            text=f"Selamat datang di menu bantuan"
-            f"",
+            text=""" Hi..🤗 I'm *Rosi*
+                 \nHere is the [Source Code](https://t.me/arunasupportbot) .""",
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=False,
+            reply_markup=InlineKeyboardMarkup(
+                [
+                 [
+                    InlineKeyboardButton(text="Go Back", callback_data="source_back")
+                 ]
+                ]
+            ),
+        )
+    elif query.data == "source_back":
+        query.message.edit_text(
+                PM_START_TEXT,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=60,
+                disable_web_page_preview=False,
+        )
+
+
+@run_async
+def Permis_about_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    if query.data == "permis_":
+        query.message.edit_text(
+            text="""Selamat datang di menu bantuan
+                 \n""",
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(text="Basic📕", callback_data="aboutmanu_permis"),
-                        InlineKeyboardButton(text="Advanced📗", callback_data="aboutmanu_advanced"),
+                        InlineKeyboardButton(text="Basic📕", callback_data="permis_"),
+                        InlineKeyboardButton(text="Advanced📗", callback_data="advanced_"),
                     ],
                     [
-                        InlineKeyboardButton(text="Fun📘", callback_data="aboutmanu_fun"),
-                        InlineKeyboardButton(text="Tools📙", callback_data="aboutmanu_alat"),   
-                    ],
-                    [
-                        InlineKeyboardButton(text="📚Bantuan Lengkap📚",callback_data="help_back")
+                        InlineKeyboardButton(text="Fun📘", callback_data="fun_"),
+                        InlineKeyboardButton(text="Tools📙", callback_data="tools_"),
                     ],
                     [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_back")],
+                        InlineKeyboardButton(text="🔙Kembali", callback_data="permis_back")],
                 ]
             ),
         )
-    elif query.data == "aboutmanu_permis":
+    elif query.data == "permis_back":
         query.message.edit_text(
-            text=f"*Basic Commands*"
-            f"",
+                PM_START_TEXT,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=60,
+                disable_web_page_preview=False,
+        )
+
+
+@run_async
+def Basic_about_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    if query.data == "basic_":
+        query.message.edit_text(
+            text="""*Basic Commands*
+                 \n""",
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
@@ -440,14 +473,27 @@ def DaisyX_about_callback(update, context):
                         InlineKeyboardButton(text="Welcome",callback_data="aboutmanu_welcome")
                     ],
                     [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_howto")],
+                        InlineKeyboardButton(text="🔙Kembali", callback_data="basic_back")],
                 ]
             ),
         )
-    elif query.data == "aboutmanu_advanced":
+    elif query.data == "basic_back":
         query.message.edit_text(
-            text=f"*Advanced Commands*"
-            f"",
+                PM_START_TEXT,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=60,
+                disable_web_page_preview=False,
+        )
+
+
+@run_async
+def Advanced_about_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    if query.data == "advanced_":
+        query.message.edit_text(
+            text="""*Advanced Commands*
+                 \n""",
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
@@ -474,14 +520,27 @@ def DaisyX_about_callback(update, context):
                         InlineKeyboardButton(text="Shield",callback_data="aboutmanu_shield")
                     ],
                     [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_howto")],
+                        InlineKeyboardButton(text="🔙Kembali", callback_data="advanced_back")],
                 ]
             ),
         )
-    elif query.data == "aboutmanu_fun":
+    elif query.data == "advanced_back":
         query.message.edit_text(
-            text=f"*Fun Commands*"
-            f"",
+                PM_START_TEXT,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=60,
+                disable_web_page_preview=False,
+        )
+
+
+@run_async
+def Fun_about_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    if query.data == "fun_":
+        query.message.edit_text(
+            text="""*Fun Commands*
+                 \n""",
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
@@ -506,14 +565,27 @@ def DaisyX_about_callback(update, context):
                         InlineKeyboardButton(text="Youtube", callback_data="aboutmanu_youtube")
                     ],
                     [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_howto")],
+                        InlineKeyboardButton(text="🔙Kembali", callback_data="fun_back")],
                 ]
             ),
         )
-    elif query.data == "aboutmanu_alat":
+    elif query.data == "fun_back":
         query.message.edit_text(
-            text=f"*Fun Commands*"
-            f"",
+                PM_START_TEXT,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=60,
+                disable_web_page_preview=False,
+        )
+
+
+@run_async
+def Tools_about_callback(update: Update, context: CallbackContext):
+    query = update.callback_query
+    if query.data == "tools_":
+        query.message.edit_text(
+            text="""*Tools Commands*
+                 \n""",
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup(
@@ -545,10 +617,20 @@ def DaisyX_about_callback(update, context):
                         InlineKeyboardButton(text="Zipper", callback_data="aboutmanu_zipper")
                     ],
                     [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_howto")],
+                        InlineKeyboardButton(text="🔙Kembali", callback_data="tools_back")],
                 ]
             ),
-        )                
+        )
+    elif query.data == "tools_back":
+        query.message.edit_text(
+                PM_START_TEXT,
+                reply_markup=InlineKeyboardMarkup(buttons),
+                parse_mode=ParseMode.MARKDOWN,
+                timeout=60,
+                disable_web_page_preview=False,
+        )
+ 
+           
     elif query.data == "aboutmanu_admin":
         query.message.edit_text(
             text=f"*Bantuan untuk ️modul Admin:*"
@@ -568,7 +650,7 @@ def DaisyX_about_callback(update, context):
                         InlineKeyboardButton(text="Cleaner", callback_data="aboutmanu_cleaner"),
                     ],
                     [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_permis")],
+                        InlineKeyboardButton(text="🔙Kembali", callback_data="permis_back")],
                 ]
             ),
         )
@@ -615,7 +697,7 @@ def DaisyX_about_callback(update, context):
                         InlineKeyboardButton(text="About", callback_data="aboutmanu_flood"),
                     ],
                     [   
-                        InlineKeyboardButton(text="🔙Kembali", callback_data="aboutmanu_permis")],
+                        InlineKeyboardButton(text="🔙Kembali", callback_data="permis_back")],
                 ]
             ),
         )
@@ -1518,33 +1600,10 @@ def DaisyX_about_callback(update, context):
             reply_markup=InlineKeyboardMarkup(
                 [[InlineKeyboardButton(text="Back", callback_data="aboutmanu_permis")]]
             ),
-        )            
-    elif query.data == "aboutmanu_tac":
-        query.message.edit_text(
-            text=f"<b> ｢ Terms and Conditions 」</b>\n"
-            f"\n<i>To Use This Bot, You Need To Read Terms and Conditions Carefully.</i>\n"
-            f"\n✪ We always respect your privacy \n  We never log into bot's api and spying on you \n  We use a encripted database \n  Bot will automatically stops if someone logged in with api."
-            f"\n✪ Always try to keep credits, so \n  This hardwork is done by Infinity_Bots team spending many sleepless nights.. So, Respect it."
-            f"\n✪ Some modules in this bot is owned by different authors, So, \n  All credits goes to them \n  Also for <b>Paul Larson for Marie</b>."
-            f"\n✪ If you need to ask anything about \n  this bot, Go @{SUPPORT_CHAT}."
-            f"\n✪ If you asking nonsense in Support \n  Chat, you will get warned/banned."
-            f"\n✪ All api's we used owned by originnal authors \n  Some api's we use Free version \n  Please don't overuse AI Chat."
-            f"\n✪ We don't Provide any support to forks,\n  So these terms and conditions not applied to forks \n  If you are using a fork of DaisyXBot we are not resposible for anything."
-            f"\n\nFor any kind of help, related to this bot, Join @{SUPPORT_CHAT}."
-            f"\n\n<i>Terms & Conditions will be changed anytime</i>\n",
-            parse_mode=ParseMode.HTML,
-            reply_markup=InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton(text="Kembali", callback_data="aboutmanu_"),
-                    ]
-                ]
-            ),
         )
 
-
 @run_async
-def get_help(update, context):
+def get_help(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     args = update.effective_message.text.split(None, 1)
 
@@ -1569,15 +1628,15 @@ def get_help(update, context):
             )
             return
         update.effective_message.reply_text(
-            "Penjelasan Perintah",
+            "Contact me in PM to get the list of possible commands.",
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
                         InlineKeyboardButton(
-                            text="Tekan disini",
+                            text="Help",
                             url="t.me/{}?start=help".format(context.bot.username),
                         )
-                    ],
+                    ]
                 ]
             ),
         )
@@ -1595,7 +1654,7 @@ def get_help(update, context):
             chat.id,
             text,
             InlineKeyboardMarkup(
-                [[InlineKeyboardButton(text="Back", callback_data="aboutmanu_howto")]]
+                [[InlineKeyboardButton(text="Back", callback_data="help_back")]]
             ),
         )
 
@@ -1645,9 +1704,10 @@ def send_settings(chat_id, user_id, user=False):
 
 
 @run_async
-def settings_button(update, context):
+def settings_button(update: Update, context: CallbackContext):
     query = update.callback_query
     user = update.effective_user
+    bot = context.bot
     mod_match = re.match(r"stngs_module\((.+?),(.+?)\)", query.data)
     prev_match = re.match(r"stngs_prev\((.+?),(.+?)\)", query.data)
     next_match = re.match(r"stngs_next\((.+?),(.+?)\)", query.data)
@@ -1656,11 +1716,11 @@ def settings_button(update, context):
         if mod_match:
             chat_id = mod_match.group(1)
             module = mod_match.group(2)
-            chat = context.bot.get_chat(chat_id)
+            chat = bot.get_chat(chat_id)
             text = "*{}* has the following settings for the *{}* module:\n\n".format(
                 escape_markdown(chat.title), CHAT_SETTINGS[module].__mod_name__
             ) + CHAT_SETTINGS[module].__chat_settings__(chat_id, user.id)
-            query.message.edit_text(
+            query.message.reply_text(
                 text=text,
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
@@ -1678,11 +1738,10 @@ def settings_button(update, context):
         elif prev_match:
             chat_id = prev_match.group(1)
             curr_page = int(prev_match.group(2))
-            chat = context.bot.get_chat(chat_id)
-            query.message.edit_text(
-                "Hi there! There are quite a few settings for *{}* - go ahead and pick what "
+            chat = bot.get_chat(chat_id)
+            query.message.reply_text(
+                "Hi there! There are quite a few settings for {} - go ahead and pick what "
                 "you're interested in.".format(chat.title),
-                parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(
                         curr_page - 1, CHAT_SETTINGS, "stngs", chat=chat_id
@@ -1693,11 +1752,10 @@ def settings_button(update, context):
         elif next_match:
             chat_id = next_match.group(1)
             next_page = int(next_match.group(2))
-            chat = context.bot.get_chat(chat_id)
-            query.message.edit_text(
-                "Hi there! There are quite a few settings for *{}* - go ahead and pick what "
+            chat = bot.get_chat(chat_id)
+            query.message.reply_text(
+                "Hi there! There are quite a few settings for {} - go ahead and pick what "
                 "you're interested in.".format(chat.title),
-                parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
                     paginate_modules(
                         next_page + 1, CHAT_SETTINGS, "stngs", chat=chat_id
@@ -1707,9 +1765,9 @@ def settings_button(update, context):
 
         elif back_match:
             chat_id = back_match.group(1)
-            chat = context.bot.get_chat(chat_id)
-            query.message.edit_text(
-                text="Hi there! There are quite a few settings for *{}* - go ahead and pick what "
+            chat = bot.get_chat(chat_id)
+            query.message.reply_text(
+                text="Hi there! There are quite a few settings for {} - go ahead and pick what "
                 "you're interested in.".format(escape_markdown(chat.title)),
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=InlineKeyboardMarkup(
@@ -1718,17 +1776,14 @@ def settings_button(update, context):
             )
 
         # ensure no spinny white circle
-        context.bot.answer_callback_query(query.id)
-        # query.message.delete()
-    except Exception as excp:
-        if excp.message == "Message is not modified":
-            pass
-        elif excp.message == "Query_id_invalid":
-            pass
-        elif excp.message == "Message can't be deleted":
-            pass
-        else:
-            query.message.edit_text(excp.message)
+        bot.answer_callback_query(query.id)
+        query.message.delete()
+    except BadRequest as excp:
+        if excp.message not in [
+            "Message is not modified",
+            "Query_id_invalid",
+            "Message can't be deleted",
+        ]:
             LOGGER.exception("Exception in settings buttons. %s", str(query.data))
 
 
@@ -1741,19 +1796,19 @@ def get_settings(update: Update, context: CallbackContext):
     # ONLY send settings in PM
     if chat.type != chat.PRIVATE:
         if is_user_admin(chat, user.id):
-            text = "Dimana anda ingin membuka menu pengaturan"
+            text = "Click here to get this chat's settings, as well as yours."
             msg.reply_text(
                 text,
                 reply_markup=InlineKeyboardMarkup(
                     [
                         [
                             InlineKeyboardButton(
-                                text="👤 Buka di pesan pribadi",
-                                url="t.me/{}?start=help".format(context.bot.username),
+                                text="Settings",
+                                url="t.me/{}?start=stngs_{}".format(
+                                    context.bot.username, chat.id
+                                ),
                             )
-                        ],
-                        [   
-                            InlineKeyboardButton(text="👥 Buka Disini",callback_data="aboutmanu_howto")],   
+                        ]
                     ]
                 ),
             )
@@ -1764,7 +1819,42 @@ def get_settings(update: Update, context: CallbackContext):
         send_settings(chat.id, user.id, True)
 
 
-def migrate_chats(update, context):
+@run_async
+def donate(update: Update, context: CallbackContext):
+    user = update.effective_message.from_user
+    chat = update.effective_chat  # type: Optional[Chat]
+    bot = context.bot
+    if chat.type == "private":
+        update.effective_message.reply_text(
+            DONATE_STRING, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
+        )
+
+        if OWNER_ID != 1677365574 and DONATION_LINK:
+            update.effective_message.reply_text(
+                "You can also donate to the person currently running me "
+                "[here]({})".format(DONATION_LINK),
+                parse_mode=ParseMode.MARKDOWN,
+            )
+
+    else:
+        try:
+            bot.send_message(
+                user.id,
+                DONATE_STRING,
+                parse_mode=ParseMode.MARKDOWN,
+                disable_web_page_preview=True,
+            )
+
+            update.effective_message.reply_text(
+                "I've PM'ed you about donating to my creator!"
+            )
+        except Unauthorized:
+            update.effective_message.reply_text(
+                "Contact me in PM first to get donation information."
+            )
+
+
+def migrate_chats(update: Update, context: CallbackContext):
     msg = update.effective_message  # type: Optional[Message]
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
@@ -1783,65 +1873,11 @@ def migrate_chats(update, context):
     raise DispatcherHandlerStop
 
 
-def is_chat_allowed(update, context):
-    if len(WHITELIST_CHATS) != 0:
-        chat_id = update.effective_message.chat_id
-        if chat_id not in WHITELIST_CHATS:
-            context.bot.send_message(
-                chat_id=update.message.chat_id, text="Unallowed chat! Leaving..."
-            )
-            try:
-                context.bot.leave_chat(chat_id)
-            finally:
-                raise DispatcherHandlerStop
-    if len(BL_CHATS) != 0:
-        chat_id = update.effective_message.chat_id
-        if chat_id in BL_CHATS:
-            context.bot.send_message(
-                chat_id=update.message.chat_id, text="Unallowed chat! Leaving..."
-            )
-            try:
-                context.bot.leave_chat(chat_id)
-            finally:
-                raise DispatcherHandlerStop
-    if len(WHITELIST_CHATS) != 0 and len(BL_CHATS) != 0:
-        chat_id = update.effective_message.chat_id
-        if chat_id in BL_CHATS:
-            context.bot.send_message(
-                chat_id=update.message.chat_id, text="Unallowed chat, leaving"
-            )
-            try:
-                context.bot.leave_chat(chat_id)
-            finally:
-                raise DispatcherHandlerStop
-    else:
-        pass
-
-
-@run_async
-def donate(update: Update, context: CallbackContext):
-    update.effective_message.from_user
-    chat = update.effective_chat  # type: Optional[Chat]
-    context.bot
-    if chat.type == "private":
-        update.effective_message.reply_text(
-            DONATE_STRING, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True
-        )
-        update.effective_message.reply_text(
-            "You can also donate to the person currently running me "
-            "[here]({})".format(DONATION_LINK),
-            parse_mode=ParseMode.MARKDOWN,
-        )
-
-    else:
-        pass
-
-
 def main():
 
     if SUPPORT_CHAT is not None and isinstance(SUPPORT_CHAT, str):
         try:
-            dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "I am now online!")
+            dispatcher.bot.sendMessage(f"@{SUPPORT_CHAT}", "Lovely is back with explosive features.✨")
         except Unauthorized:
             LOGGER.warning(
                 "Bot isnt able to send message to support_chat, go and check!"
@@ -1849,36 +1885,44 @@ def main():
         except BadRequest as e:
             LOGGER.warning(e.message)
 
-    # test_handler = CommandHandler("test", test)
-    start_handler = CommandHandler("start", start, pass_args=True)
+    test_handler = CommandHandler("test", test)
+    start_handler = CommandHandler("start", start)
 
     help_handler = CommandHandler("help", get_help)
-    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_")
+    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_.*")
 
     settings_handler = CommandHandler("settings", get_settings)
     settings_callback_handler = CallbackQueryHandler(settings_button, pattern=r"stngs_")
 
-    about_callback_handler = CallbackQueryHandler(
-        DaisyX_about_callback, pattern=r"aboutmanu_"
-    )
+    about_callback_handler = CallbackQueryHandler(Masha_about_callback, pattern=r"masha_")
+    source_callback_handler = CallbackQueryHandler(Source_about_callback, pattern=r"source_")
+    permis_callback_handler = CallbackQueryHandler(Permis_about_callback, pattern=r"permis_")
+    basic_callback_handler = CallbackQueryHandler(Basic_about_callback, pattern=r"basic_")
+    advanced_callback_handler = CallbackQueryHandler(Advanced_about_callback, pattern=r"advanced_")
+    fun_callback_handler = CallbackQueryHandler(Fun_about_callback, pattern=r"fun_")
+    tools_callback_handler = CallbackQueryHandler(Tools_about_callback, pattern=r"tools_")
+
 
     donate_handler = CommandHandler("donate", donate)
-
     migrate_handler = MessageHandler(Filters.status_update.migrate, migrate_chats)
-    is_chat_allowed_handler = MessageHandler(Filters.group, is_chat_allowed)
 
     # dispatcher.add_handler(test_handler)
     dispatcher.add_handler(start_handler)
-    dispatcher.add_handler(about_callback_handler)
     dispatcher.add_handler(help_handler)
+    dispatcher.add_handler(about_callback_handler)
+    dispatcher.add_handler(source_callback_handler)
+    dispatcher.add_handler(permis_callback_handler)
+    dispatcher.add_handler(basic_callback_handler)
+    dispatcher.add_handler(advanced_callback_handler)
+    dispatcher.add_handler(fun_callback_handler)
+    dispatcher.add_handler(tools_callback_handler)
     dispatcher.add_handler(settings_handler)
     dispatcher.add_handler(help_callback_handler)
     dispatcher.add_handler(settings_callback_handler)
     dispatcher.add_handler(migrate_handler)
-    dispatcher.add_handler(is_chat_allowed_handler)
     dispatcher.add_handler(donate_handler)
 
-    dispatcher.add_error_handler(error_handler)
+    dispatcher.add_error_handler(error_callback)
 
     if WEBHOOK:
         LOGGER.info("Using webhooks.")
@@ -1888,7 +1932,6 @@ def main():
             updater.bot.set_webhook(url=URL + TOKEN, certificate=open(CERT_PATH, "rb"))
         else:
             updater.bot.set_webhook(url=URL + TOKEN)
-            client.run_until_disconnected()
 
     else:
         LOGGER.info("Using long polling.")
