@@ -418,7 +418,7 @@ def Permis_about_callback(update: Update, context: CallbackContext):
             reply_markup=InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(text="Basic📕", callback_data="permis_"),
+                        InlineKeyboardButton(text="Basic📕", callback_data="basic_"),
                         InlineKeyboardButton(text="Advanced📗", callback_data="advanced_"),
                     ],
                     [
